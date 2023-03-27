@@ -7,58 +7,66 @@ const calculateGroupScore = (group) => {
     let groupScore = 0;
     let dmgCount = 0;
     let timeCount = 0;
+    const typeCounts = {};
 
     group.forEach((pet) => {
         groupScore += pet.BaseDungeonDamage * (1 + pet.Rank * 0.02);
+
         if (pet.BonusList.some((bonus) => bonus.ID === 1013)) {
             dmgCount++;
         }
         if (pet.BonusList.some((bonus) => bonus.ID === 1012)) {
             timeCount++;
         }
+
+        // Count pet types
+        if (typeCounts[pet.Type]) {
+            typeCounts[pet.Type]++;
+        } else {
+            typeCounts[pet.Type] = 1;
+        }
     });
 
-    groupScore *= 1 + dmgCount * 0.1;
-    groupScore *= 1 + timeCount * 0.05;
+    let synergyBonus = 0;
+    for (const type in typeCounts) {
+        if (typeCounts[type] >= 2) {
+            synergyBonus += 0.25;
+        }
+    }
+
+    groupScore *= (1 + dmgCount * 0.1);
+    groupScore *= (1 + timeCount * 0.05);
+    groupScore *= (0.5 + synergyBonus);
 
     return groupScore;
 };
 
+
 const findBestGroups = (petsCollection) => {
     const k = 4; // Size of each group
     const numGroups = 6; // Number of groups to find
-    const memo = new Map();
 
-    const findBestDynamic = (pets, groups) => {
-        if (groups.length === numGroups) {
-            return groups;
+    // Sort pets in descending order by their score
+    const sortedPets = [...petsCollection].sort((a, b) => calculateGroupScore([b]) - calculateGroupScore([a]));
+
+    // Find top 6 groups of size 4 using a greedy approach
+    const bestGroups = [];
+    let index = 0;
+
+    while (bestGroups.length < numGroups) {
+        const group = [];
+
+        for (let i = 0; i < k && index < sortedPets.length; ++i, ++index) {
+            group.push(sortedPets[index]);
         }
 
-        const key = pets.map((pet) => pet.ID).join('-');
-        if (memo.has(key)) {
-            return memo.get(key);
+        // Check if the group has the required size and hasn't been added already
+        if (group.length === k && !bestGroups.some((g) => g.every((e, i) => e.ID === group[i].ID))) {
+            bestGroups.push(group);
         }
+    }
 
-        let bestGroups = [];
-        let bestScore = -Infinity;
-
-        for (let i = 0; i <= pets.length - k; ++i) {
-            const newGroup = pets.slice(i, i + k);
-            const remainingPets = [...pets.slice(0, i), ...pets.slice(i + k)];
-            const nextGroups = findBestDynamic(remainingPets, [...groups, newGroup]);
-
-            const totalScore = nextGroups.reduce((sum, group) => sum + calculateGroupScore(group), 0);
-            if (totalScore > bestScore) {
-                bestGroups = nextGroups;
-                bestScore = totalScore;
-            }
-        }
-
-        memo.set(key, bestGroups);
-        return bestGroups;
-    };
-
-    return findBestDynamic(petsCollection, []);
+    return bestGroups;
 };
 
 const getItemName = (itemId) => {
