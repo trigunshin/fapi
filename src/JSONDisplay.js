@@ -2,6 +2,7 @@ import React from 'react';
 import './JSONDisplay.css'; // Add this line to import the CSS file
 import PetNames from './itemMapping'
 
+
 const calculateGroupScore = (group) => {
     let groupScore = 0;
     let dmgCount = 0;
@@ -25,7 +26,7 @@ const calculateGroupScore = (group) => {
 
 const findBestGroups = (petsCollection) => {
     const k = 4; // Size of each group
-    const numGroups = 5; // Number of groups to find
+    const numGroups = 6; // Number of groups to find
     const memo = new Map();
 
     const findBestDynamic = (pets, groups) => {
@@ -66,11 +67,23 @@ const getItemName = (itemId) => {
 };
 
 
-const JSONDisplay = ({ data }) => {
+const JSONDisplay = ({ data, selectedItems }) => {
     if (!data || !data.PetsCollection) {
         return <div>Loading...</div>; // You can replace this with null or another element if you prefer
     }
-    const groups = findBestGroups(data.PetsCollection.filter(pet => pet.Rank));
+    const selectedItemsById = selectedItems.reduce((accum, item) => {
+        accum[item] = parseInt(item, 10);
+        return accum;
+    }, {})
+    const isSelected = (petId) => {
+        return !!selectedItemsById[parseInt(petId, 10)];
+    };
+    const filteredPets = data.PetsCollection.filter((pet) => {
+        // console.log('selected items includes', pet.ID, selectedItems)
+        return isSelected(pet.ID)
+});
+
+    const groups = findBestGroups(filteredPets);
 
     const renderGroup = (group) => {
         return group.map((pet) => {
