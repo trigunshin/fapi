@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const execSync = require('child_process').execSync;
 
-const checkoutBranch = 'gh-pages';
+const checkoutBranch = 'publ3';
 const buildDir = 'build';
 
 // Move to the root of the repository
