@@ -29,7 +29,10 @@ const FileUpload = ({ onData }) => {
 
     return (
         <div className="FileUpload">
+            <h1>SPOILERS AWAIT</h1>
             <h2>Upload your save file for top 6 teams according to base dmg, current rank, and expedition dmg/time bonuses:</h2>
+            <h3>Written with ChatGPT. Calculations may take a minute. All data stays client-side.</h3>
+            <h3>currentRank*baseDmg*groupBonus; rank > 0 to be considered</h3>
             <input type="file" onChange={handleFileUpload} />
         </div>
     );
