@@ -1,32 +1,64 @@
 import React from 'react';
-
+import './JSONDisplay.css'; // Add this line to import the CSS file
 import PetNames from './itemMapping'
 
-function findBestGroups(petsCollection) {
-    const calculateScore = (pet) => pet.BaseDungeonDamage * (1 + pet.Rank * 0.02);
+const calculateGroupScore = (group) => {
+    let groupScore = 0;
+    let dmgCount = 0;
+    let timeCount = 0;
 
-    const sortedPets = petsCollection.sort((a, b) => calculateScore(b) - calculateScore(a));
+    group.forEach((pet) => {
+        groupScore += pet.BaseDungeonDamage * (1 + pet.Rank * 0.02);
+        if (pet.BonusList.some((bonus) => bonus.ID === 1013)) {
+            dmgCount++;
+        }
+        if (pet.BonusList.some((bonus) => bonus.ID === 1012)) {
+            timeCount++;
+        }
+    });
 
-    const type0Pets = sortedPets.filter((pet) => pet.Type === 0);
-    const type1Pets = sortedPets.filter((pet) => pet.Type === 1);
+    groupScore *= 1 + dmgCount * 0.1;
+    groupScore *= 1 + timeCount * 0.05;
 
-    const groups = [];
+    return groupScore;
+};
 
-    for (let i = 0; i < 4; i++) {
-        const group = [];
+const findBestGroups = (petsCollection) => {
+    const k = 4; // Size of each group
+    const numGroups = 5; // Number of groups to find
+    const memo = new Map();
 
-        if (type0Pets.length >= 2 && type1Pets.length >= 2) {
-            group.push(type0Pets.shift(), type0Pets.shift(), type1Pets.shift(), type1Pets.shift());
-        } else {
-            group.push(...type0Pets.splice(0, 4 - group.length));
-            group.push(...type1Pets.splice(0, 4 - group.length));
+    const findBestDynamic = (pets, groups) => {
+        if (groups.length === numGroups) {
+            return groups;
         }
 
-        groups.push(group);
-    }
+        const key = pets.map((pet) => pet.ID).join('-');
+        if (memo.has(key)) {
+            return memo.get(key);
+        }
 
-    return groups;
-}
+        let bestGroups = [];
+        let bestScore = -Infinity;
+
+        for (let i = 0; i <= pets.length - k; ++i) {
+            const newGroup = pets.slice(i, i + k);
+            const remainingPets = [...pets.slice(0, i), ...pets.slice(i + k)];
+            const nextGroups = findBestDynamic(remainingPets, [...groups, newGroup]);
+
+            const totalScore = nextGroups.reduce((sum, group) => sum + calculateGroupScore(group), 0);
+            if (totalScore > bestScore) {
+                bestGroups = nextGroups;
+                bestScore = totalScore;
+            }
+        }
+
+        memo.set(key, bestGroups);
+        return bestGroups;
+    };
+
+    return findBestDynamic(petsCollection, []);
+};
 
 const getItemName = (itemId) => {
     const item = PetNames[itemId];
@@ -35,19 +67,30 @@ const getItemName = (itemId) => {
 
 
 const JSONDisplay = ({ data }) => {
-    const groups = findBestGroups(data.PetsCollection);
+    if (!data || !data.PetsCollection) {
+        return <div>Loading...</div>; // You can replace this with null or another element if you prefer
+    }
+    const groups = findBestGroups(data.PetsCollection.filter(pet => pet.Rank));
+
+    const renderGroup = (group) => {
+        return group.map((pet) => {
+            const itemName = getItemName(pet.ID);
+            const imageUrl = `/fapi/pets/${itemName}.png`;
+            return (
+                <div key={pet.ID}>
+                    <div>{itemName}</div>
+                    <img src={imageUrl} alt={itemName} />
+                </div>
+            );
+        });
+    };
 
     return (
         <div className="JSONDisplay">
             {groups.map((group, index) => (
                 <div key={index}>
-                    <h3>Group {index + 1}</h3>
-                    <p>
-                        Names:{' '}
-                        {group
-                            .map((pet) => getItemName(pet.ID))
-                            .join(', ')}
-                    </p>
+                    <h3>Group {index + 1} ({calculateGroupScore(group)})</h3>
+                    <div className="group-container">{renderGroup(group)}</div>
                 </div>
             ))}
         </div>

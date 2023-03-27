@@ -1,0 +1,12 @@
+.group-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.group-container div {
+    text-align: center;
+    margin-right: 10px;
+}
