@@ -18,7 +18,7 @@ try {
 // Remove all files except for .gitignore and README.md
 fs.readdirSync('.').forEach((file) => {
     if (file !== '.git' && file !== '.gitignore' && file !== 'README.md') {
-        //fs.removeSync(file);
+        fs.removeSync(file);
     }
 });
 
