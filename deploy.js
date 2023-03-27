@@ -9,11 +9,11 @@ const buildDir = 'build';
 process.chdir(path.resolve(__dirname));
 
 // Checkout to the gh-pages branch or create it if it doesn't exist
-try {
-    execSync(`git checkout ${checkoutBranch}`);
-} catch (error) {
-    execSync(`git checkout -b ${checkoutBranch}`);
-}
+// try {
+//     execSync(`git checkout ${checkoutBranch}`);
+// } catch (error) {
+//     execSync(`git checkout -b ${checkoutBranch}`);
+// }
 
 // Remove all files except for .gitignore and README.md
 // fs.readdirSync('.').forEach((file) => {
@@ -26,10 +26,10 @@ try {
 fs.copySync(buildDir, 'docs/');
 
 // Add and commit the changes
-execSync('git add .');
+execSync('git add docs');
 execSync('git commit -m "Update GitHub Pages"');
 
 // Return to the main branch (replace "main" with your main branch name if different)
-execSync('git checkout master');
+//execSync('git checkout master');
 
 console.log('Deployment commit created. You can now push the changes to the remote repository.');
