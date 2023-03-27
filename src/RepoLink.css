@@ -1,0 +1,19 @@
+.repo-link {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.repo-link:hover {
+    text-decoration: none;
+    color: #333;
+    background-color: #e6e6e6;
+}

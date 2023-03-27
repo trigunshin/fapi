@@ -1,42 +1,23 @@
 import React, { useState } from 'react';
-import pako from 'pako';
+import './App.css';
+import FileUpload from './FileUpload';
 import JSONDisplay from './JSONDisplay';
+import RepoLink from './RepoLink';
 
 function App() {
-    const [jsonData, setJsonData] = useState(null);
+    const [data, setData] = useState(null);
 
-    const handleFileUpload = async (e) => {
-        const file = e.target.files[0];
-        const fileReader = new FileReader();
-
-        fileReader.onload = (event) => {
-            const compressedData = new Uint8Array(event.target.result);
-            const decompressedData = pako.inflate(compressedData);
-            const textDecoder = new TextDecoder('utf-8');
-            const decodedString = textDecoder.decode(decompressedData);
-
-            const startPosition = decodedString.indexOf('{');
-            const endPosition = decodedString.lastIndexOf('}') + 1;
-            const jsonString = decodedString.slice(startPosition, endPosition);
-
-            try {
-                const parsedJson = JSON.parse(jsonString);
-                setJsonData(parsedJson);
-            } catch (error) {
-                console.error('Invalid JSON:', error);
-            }
-        };
-
-        fileReader.readAsArrayBuffer(file);
+    const handleData = (uploadedData) => {
+        setData(uploadedData);
     };
-    if (jsonData) {
-        console.log(jsonData.petsCollection);
-        return <JSONDisplay data={jsonData} />;
-    }
 
     return (
         <div className="App">
-            <input type="file" onChange={handleFileUpload} />
+            <RepoLink />
+            <FileUpload onData={handleData} />
+            {data && (
+                <JSONDisplay data={data} />
+            )}
         </div>
     );
 }
