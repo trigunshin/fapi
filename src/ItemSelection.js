@@ -18,7 +18,7 @@ const ItemSelection = ({ selectedItems, onItemSelected }) => {
             onItemSelected([...selectedItems, petId]);
         }
     };
-console.log('itemselection', petNameArray)
+
     return (
         <div className="item-selection">
             {petNameArray.map((petData) => (

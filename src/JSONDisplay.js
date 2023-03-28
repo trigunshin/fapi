@@ -30,7 +30,9 @@ const calculateGroupScore = (group) => {
     let synergyBonus = 0;
     for (const type in typeCounts) {
         if (typeCounts[type] >= 2) {
-            synergyBonus += 0.25;
+            synergyBonus += 0.5;
+        } else if (typeCounts[type] === 1) {
+            synergyBonus += 0.25
         }
     }
 
@@ -40,34 +42,40 @@ const calculateGroupScore = (group) => {
 
     return groupScore;
 };
-
-
 const findBestGroups = (petsCollection) => {
     const k = 4; // Size of each group
     const numGroups = 6; // Number of groups to find
 
-    // Sort pets in descending order by their score
-    const sortedPets = [...petsCollection].sort((a, b) => calculateGroupScore([b]) - calculateGroupScore([a]));
+    const getCombinations = (array, k) => {
+        const combinations = [];
+        const f = (start, prevCombination) => {
+            if (prevCombination.length === k) {
+                combinations.push(prevCombination);
+                return;
+            }
+            for (let i = start; i < array.length; i++) {
+                f(i + 1, [...prevCombination, array[i]]);
+            }
+        };
+        f(0, []);
+        return combinations;
+    };
 
-    // Find top 6 groups of size 4 using a greedy approach
-    const bestGroups = [];
-    let index = 0;
+    let bestGroups = [];
+    for (let g = 0; g < numGroups; g++) {
+        const combinations = getCombinations(petsCollection, k);
+        const bestGroup = combinations.reduce((best, group) => {
+            const score = calculateGroupScore(group);
+            return score > calculateGroupScore(best) ? group : best;
+        }, combinations[0]);
 
-    while (bestGroups.length < numGroups) {
-        const group = [];
-
-        for (let i = 0; i < k && index < sortedPets.length; ++i, ++index) {
-            group.push(sortedPets[index]);
-        }
-
-        // Check if the group has the required size and hasn't been added already
-        if (group.length === k && !bestGroups.some((g) => g.every((e, i) => e.ID === group[i].ID))) {
-            bestGroups.push(group);
-        }
+        bestGroups.push(bestGroup);
+        petsCollection = petsCollection.filter((pet) => !bestGroup.includes(pet));
     }
 
     return bestGroups;
 };
+
 
 const getItemName = (itemId) => {
     const item = PetNames[itemId];
