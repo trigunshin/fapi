@@ -9,12 +9,12 @@ import ItemSelection from './ItemSelection';
 const defaultPetSelection = petNameArray.map(petData => petData.petId);
 
 function App() {
-    const [processing, setProcessing] = useState(false);
     const [data, setData] = useState(null);
     const [selectedItems, setSelectedItems] = useState(defaultPetSelection);
 
     const handleData = (uploadedData) => {
         setData(uploadedData);
+        console.log(uploadedData)
         const positiveRankedPets = uploadedData.PetsCollection.filter(
             (pet) => pet.Rank
         ).map((pet) => pet.ID);
@@ -22,23 +22,13 @@ function App() {
     };
 
     const handleItemSelected = (items) => {
-        setProcessing(true);
-        setTimeout(() => {
-            setSelectedItems(items);
-            setProcessing(false);
-        }, 1000); // Adjust the duration as needed
+        setSelectedItems(items);
     };
-
+console.log('app.selecteditems', selectedItems);
 
     return (
         <div className="App">
             <RepoLink />
-            {processing && (
-                <div className="processing-message">
-                    Processing... {/* Replace this with a loading spinner or any other message you'd like to show */}
-                </div>
-            )}
-
             <div className="main-content">
                 {data ? (
                     <JSONDisplay data={data} selectedItems={selectedItems} />
@@ -46,10 +36,10 @@ function App() {
                     <FileUpload onData={handleData} />
                 )}
                 {data ? (
-                    <ItemSelection selectedItems={selectedItems} onItemSelected={handleItemSelected} />
-                    ) : (
+                    <ItemSelection data={data} selectedItems={selectedItems} onItemSelected={handleItemSelected} />
+                ) : (
                     <div></div>
-                    )}
+                )}
             </div>
         </div>
     );

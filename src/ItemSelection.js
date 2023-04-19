@@ -1,14 +1,11 @@
 import React from 'react';
 import './ItemSelection.css';
 import { petNameArray } from './itemMapping';
+import PetItem from './PetItem';
 
-const ItemSelection = ({ selectedItems, onItemSelected }) => {
-    const selectedItemsById = selectedItems.reduce((accum, item) => {
-        accum[item] = parseInt(item, 10);
-        return accum;
-    }, {})
+const ItemSelection = ({ selectedItems, onItemSelected, data }) => {
     const isSelected = (petId) => {
-        return !!selectedItemsById[parseInt(petId, 10)];
+        return selectedItems.includes(petId);
     };
 
     const handleItemClick = (petId) => {
@@ -19,21 +16,24 @@ const ItemSelection = ({ selectedItems, onItemSelected }) => {
         }
     };
 
+    const renderPet = (petData) => {
+        const { petId } = petData;
+        const isItemSelected = isSelected(petId);
+
+        return (
+            <PetItem
+                key={petId}
+                petData={petData}
+                data={data}
+                isSelected={isItemSelected}
+                onClick={() => handleItemClick(petId)}
+            />
+        );
+    };
+
     return (
         <div className="item-selection">
-            {petNameArray.map((petData) => (
-                <div
-                    key={petData.petId}
-                    className={`item-tile${isSelected(petData.petId) ? '' : ' unselected'}`}
-                    onClick={() => handleItemClick(petData.petId)}
-                >
-                    <img
-                        src={petData.img}
-                        alt={petData.name}
-                        className={`item-image${isSelected(petData.petId) ? '' : ' unselected'}`}
-                    />
-                </div>
-            ))}
+            {petNameArray.map(renderPet)}
         </div>
     );
 };

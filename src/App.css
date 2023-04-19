@@ -5,10 +5,10 @@
   margin-top: 10%;
   height: 90%;
   width: 100%;
+  overflow: visible;
 }
 
 .JSONDisplay {
-  overflow-y: auto;
 }
 
 .ItemSelection {
@@ -16,7 +16,6 @@
   grid-template-columns: repeat(3, 1fr);
   grid-gap: 0.5rem;
   max-width: 100%;
-  overflow-y: auto;
 }
 
 .item {
