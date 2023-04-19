@@ -239,13 +239,13 @@ const PetNames = {
         "name": "Cherry",
         "location": "7-4",
     },
-    61: {
-        "name": "Noop",
-        "location": "E11C",
-    },
     62: {
-        "name": "Abby",
+        "name": "Noop",
         "location": "E11R",
+    },
+    61: {
+        "name": "Abby",
+        "location": "E11C",
     },
     63: {
         "name": "Juba",
@@ -267,13 +267,13 @@ const PetNames = {
         "name": "Ubel",
         "location": "E14C",
     },
-    68: {
-        "name": "Than",
-        "location": "E14R",
-    },
     69: {
-        "name": "Boletus",
+        "name": "Than",
         "location": "E15C",
+    },
+    68: {
+        "name": "Boletus",
+        "location": "E14R",
     },
     70: {
         "name": "Hirma",
