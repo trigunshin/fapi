@@ -10,3 +10,30 @@
     text-align: center;
     margin-right: 10px;
 }
+.groups-header-container {
+    position: relative;
+}
+
+.groups-tooltip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    visibility: hidden;
+}
+.groups-tooltip .groups-tooltip-content {
+    position: absolute;
+    z-index: 2;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    max-width: 400px;
+    white-space: nowrap;
+}
+.groups-header-container:hover .groups-tooltip {
+    visibility: visible;
+}

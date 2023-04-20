@@ -1,7 +1,11 @@
 import React from 'react';
 import './JSONDisplay.css'; // Add this line to import the CSS file
-import { petNameArray } from './itemMapping';
+import {BonusMap, petNameArray} from './itemMapping';
 import PetItem from './PetItem';
+
+const EXP_DMG_MOD = .1;
+const EXP_TIME_MOD = .05;
+const SYNERGY_MOD_STEP = .25;
 
 function calculatePetBaseDamage(pet) {
     const result = pet?.BaseDungeonDamage * (1.0 + pet?.Rank * 0.05);
@@ -13,6 +17,7 @@ const calculateGroupScore = (group) => {
     let dmgCount = 0;
     let timeCount = 0;
     let synergyBonus = 0;
+    let baseGroupScore = 0;
     const typeCounts = {};
 
     group.forEach((pet) => {
@@ -30,17 +35,18 @@ const calculateGroupScore = (group) => {
         } else {
             typeCounts[pet.Type] = 1;
         }
-        if (pet.ID) synergyBonus += 0.25;
+        if (pet.ID) synergyBonus += SYNERGY_MOD_STEP;
     });
+    baseGroupScore = groupScore;
     const [earthType, airType] = Object.values(typeCounts);
-    if (earthType > 0 && airType > 0) synergyBonus += .25;
-    if (earthType > 1 && airType > 1) synergyBonus += .25;
+    if (earthType > 0 && airType > 0) synergyBonus += SYNERGY_MOD_STEP;
+    if (earthType > 1 && airType > 1) synergyBonus += SYNERGY_MOD_STEP;
 
-    groupScore *= (1 + dmgCount * 0.1);
-    groupScore *= (1 + timeCount * 0.05);
+    groupScore *= (1 + dmgCount * EXP_DMG_MOD);
+    groupScore *= (1 + timeCount * EXP_TIME_MOD);
     groupScore *= synergyBonus;
 
-    return groupScore;
+    return {groupScore, baseGroupScore, dmgCount, timeCount, synergyBonus};
 };
 
 function getCombinations(array, k) {
@@ -68,8 +74,8 @@ const findBestGroups = (petsCollection) => {
 
     const memoizedGroupScore = (group) => {
         const key = group.map((pet) => pet.ID).join(',');
-        if (!memo[key]) {
-            memo[key] = calculateGroupScore(group);
+        if (!memo[key] || memo[key]) {
+            memo[key] = calculateGroupScore(group)?.groupScore;
         }
         return memo[key];
     };
@@ -93,6 +99,32 @@ const findBestGroups = (petsCollection) => {
 
     return bestGroups;
 };
+
+function ScoreSection({data, group, totalScore}) {
+    const {baseGroupScore, dmgCount, timeCount, synergyBonus} = calculateGroupScore(group);
+    return (
+        <ul>
+            <li>
+                {Number(totalScore).toExponential(2)}&nbsp;~=&nbsp; 5 *
+            </li>
+            <li>
+                Group Base: {Number(baseGroupScore).toExponential(2)}
+            </li>
+            <li>
+                Dmg Bonus: {Number(1+dmgCount * EXP_DMG_MOD).toFixed(2)}x
+            </li>
+            <li>
+                Time Bonus: {Number(1+timeCount * EXP_TIME_MOD).toFixed(2)}x
+            </li>
+            <li>
+                Synergy: {Number(synergyBonus).toFixed(2)}x
+            </li>
+            <li>
+                PetDmgMod: {Number(data?.PetDamageBonuses).toExponential(2)}
+            </li>
+        </ul>
+    );
+}
 
 const JSONDisplay = ({ data, selectedItems }) => {
     if (!data || !data.PetsCollection) {
@@ -131,7 +163,7 @@ const JSONDisplay = ({ data, selectedItems }) => {
     return (
         <div className="JSONDisplay">
             {groups.map((group, index) => {
-                const score = calculateGroupScore(group);
+                const score = calculateGroupScore(group).groupScore;
                 const displayedDamage = group
                     .map(pet => calculatePetBaseDamage(pet) * 5 * data?.PetDamageBonuses)
                     .reduce((accum, dmg) => accum += dmg, Number(0))
@@ -141,8 +173,17 @@ const JSONDisplay = ({ data, selectedItems }) => {
                 ).toExponential(2);
                 return (
                     <div key={index}>
-                        <h3>Group {index + 1} Damage: {displayedDamage} Scores: ({score.toFixed(2)}) ({totalScore})</h3>
-                        <h5></h5>
+                        <div className="groups-header-container">
+                            <div className="groups-item-tile">
+                                <h3>Group {index + 1} Damage: {displayedDamage}</h3>
+                            </div>
+                            <div className="groups-tooltip">
+                                <span className="groups-tooltip-content">
+                                    <h3>Group Score ({totalScore})</h3>
+                                    <ScoreSection data={data} group={group} totalScore={totalScore} />
+                                </span>
+                            </div>
+                        </div>
                         <div className="group-container">{renderGroup(group)}</div>
                     </div>
                 );
