@@ -4,7 +4,7 @@
 }
 .item-image-container {
     position: relative;
-    width: 100%;
+    /*width: 100%;*/
 }
 .item-image {
     max-width: 100%;
