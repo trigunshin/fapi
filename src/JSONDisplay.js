@@ -42,35 +42,53 @@ const calculateGroupScore = (group) => {
 
     return groupScore;
 };
+
+function getCombinations(array, k) {
+    const combinations = new Set();
+    const f = (start, prevCombination) => {
+        if (prevCombination.length > 0 && prevCombination.length <= k && prevCombination.every((pet) => pet?.ID !== undefined)) {
+            const sortedIds = prevCombination.sort((a, b) => a.ID - b.ID).map((pet) => pet.ID).join(',');
+            combinations.add(sortedIds);
+        }
+        if (prevCombination.length === k) {
+            return;
+        }
+        for (let i = start; i < array.length; i++) {
+            f(i + 1, [...prevCombination, array[i]]);
+        }
+    };
+    f(0, []);
+    return Array.from(combinations).map((combination) => combination.split(',').map((id) => array.find((pet) => pet.ID === parseInt(id))));
+}
+
 const findBestGroups = (petsCollection) => {
     const k = 4; // Size of each group
     const numGroups = 6; // Number of groups to find
+    const memo = {};
 
-    const getCombinations = (array, k) => {
-        const combinations = [];
-        const f = (start, prevCombination) => {
-            if (prevCombination.length === k) {
-                combinations.push(prevCombination);
-                return;
-            }
-            for (let i = start; i < array.length; i++) {
-                f(i + 1, [...prevCombination, array[i]]);
-            }
-        };
-        f(0, []);
-        return combinations;
+    const memoizedGroupScore = (group) => {
+        const key = group.map((pet) => pet.ID).join(',');
+        if (!memo[key]) {
+            memo[key] = calculateGroupScore(group);
+        }
+        return memo[key];
     };
 
     let bestGroups = [];
     for (let g = 0; g < numGroups; g++) {
-        const combinations = getCombinations(petsCollection, k);
+        const combinations = getCombinations(petsCollection, Math.min(k, petsCollection.length));
+        if (combinations.length === 0) {
+            break;
+        }
         const bestGroup = combinations.reduce((best, group) => {
-            const score = calculateGroupScore(group);
-            return score > calculateGroupScore(best) ? group : best;
+            const score = memoizedGroupScore(group);
+            return score > memoizedGroupScore(best) ? group : best;
         }, combinations[0]);
 
-        bestGroups.push(bestGroup);
-        petsCollection = petsCollection.filter((pet) => !bestGroup.includes(pet));
+        if (bestGroup) {
+            bestGroups.push(bestGroup);
+            petsCollection = petsCollection.filter((pet) => !bestGroup.includes(pet));
+        }
     }
 
     return bestGroups;
