@@ -9,6 +9,7 @@ const filterBonuses = (bonuses, filterFn) => {
 };
 
 const PetItem = ({ petData, isSelected, onClick, data }) => {
+    if (!!data === false) return <div></div>;
     const { petId, img, name } = petData;
 
     // Find the pet from the data.PetsCollection
