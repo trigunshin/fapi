@@ -1,21 +1,5 @@
 .main-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  grid-gap: 1rem;
-  margin-top: 10%;
-  height: 90%;
-  width: 100%;
   overflow: visible;
-}
-
-.JSONDisplay {
-}
-
-.ItemSelection {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 0.5rem;
-  max-width: 100%;
 }
 
 .item {
