@@ -121,28 +121,11 @@ const permPowerBonusFormula = {
     _ : (Pow) => new Decimal(1.0)
 };
 
-/*
-data.CardsCollection = [
-    {
-        CurrentExp: float,
-        ExpNeeded: float,
-        Found: int, // 0 or 1; 1 means found
-        ID: int,
-        Level: int,
-        PowerPerma: float,
-        PowerTemp: float
-    },
-]
-data.CardExpBonuses = <float>
-data.CardPowerBonuses = <float>
-data.ChargeTransfertPowerPerma = <float>
-data.ChargeTransfertPowerTemp = <float>
- */
 const CARD_DISPLAY_IDS = [
     17,1,2,3,9,
     7,4,14,15,16,
     8,10,11,12,13,
-    5,6,17,18,20
+    5,6,19,18,20
 ]
 export default function CardComponent({ data }) {
     const classes = useStyles();
@@ -158,7 +141,7 @@ export default function CardComponent({ data }) {
         accum[card.ID] = card;
         return accum;
     }, {});
-    const cardInfo = CARD_DISPLAY_IDS.map(id => cardsById[id] || false).filter(i => !!i).map(card => {
+    const cardInfo = CARD_DISPLAY_IDS.map(id => cardsById[id] || false).filter(i => !!i).map((card, i) => {
         const {
             CurrentExp,
             ExpNeeded,
@@ -175,12 +158,6 @@ export default function CardComponent({ data }) {
         const tempTimesPerm = (permValue.times(tempValue)).minus(1);
         const total = tempTimesPerm.times(lvlValue);
 
-        /*
-        (TempBonus(ID, PowerTemp * (1.0 - ChargeTransfertPowerTemp))
-            * PermaBonus(ID, PowerPerma + PowerTemp * ChargeTransfertPowerPerma)
-            - 1.0
-        ) * (1.0 + (double)Level * 0.02) * 100.0
-         */
         const afterCharge = new Decimal((
             tempPowerBonusFormula[ID](PowerTemp * (1.0 - ChargeTransfertPowerTemp))
             * permPowerBonusFormula[ID](PowerPerma + PowerTemp * ChargeTransfertPowerPerma) - 1.0
@@ -193,7 +170,7 @@ export default function CardComponent({ data }) {
 
         // TODO tooltip the scalars
         return (
-            <Grid2 xs={1}>
+            <Grid2 xs={1} key={i}>
                 <Box sx={{ minWidth: 20 }}>
                     <Card variant="outlined" className={classes.card}>
                         <img src={`/fapi/cards/card${ID}.png`} />
@@ -211,7 +188,7 @@ export default function CardComponent({ data }) {
     return (
         <Grid2 container spacing={.5}>
             <Grid2 xs={12}>
-                <Typography variant={"h4"}>{data?.CurrentCardCharge}<img src={`/fapi/cards/charge.png`} /></Typography>
+                <Typography variant={"h4"}>{data?.CurrentCardCharge}&nbsp;<img src={`/fapi/cards/charge.png`} /></Typography>
             </Grid2>
             {cardInfo.map(cardElement => cardElement)
                 .reduce((accum, cardElement, i) => {
