@@ -293,30 +293,31 @@ export const petNameArray = Object.entries(PetNames).map(([key, value]) => {
         'img': getImageUrl(value.name)
     };
 })
-console.log('pna',petNameArray)
+
 export const BonusMap = {
     1: {id: 1, label: "Potato"},
     2: {id: 2, label: "Class Exp"},
     3: {id: 3, label: "Skull"},
-    4: {id: 4, label: "CONFECTION EXP"},
-    5: {id: 5, label: "REINCARNATION EXP"},
-    6: {id: 6, label: "ITEM RATING"},
-    7: {id: 7, label: "POOP BONUS"},
-    8: {id: 8, label: "MILK BONUS"},
-    9: {id: 9, label: "WHACK SCORE"},
-    10: {id: 10, label: "BREWING EXP"},
-    11: {id: 11, label: "CALCIUM EXP"},
-    12: {id: 12, label: "FERMENTING EXP"},
-    13: {id: 13, label: "RESIDUE BONUS"},
-    14: {id: 14, label: "WORM QTY"},
-    15: {id: 15, label: "LARVA QTY"},
-    16: {id: 16, label: "LARVA EFF"},
+    4: {id: 4, label: "Confection Exp"},
+    5: {id: 5, label: "Reincarnation Exp"},
+    6: {id: 6, label: "Item Rating"},
+    7: {id: 7, label: "Poop BONUS"},
+    8: {id: 8, label: "Milk BONUS"},
+    9: {id: 9, label: "Whack SCORE"},
+    10: {id: 10, label: "Brewing EXP"},
+    11: {id: 11, label: "Calcium EXP"},
+    12: {id: 12, label: "Fermenting EXP"},
+    13: {id: 13, label: "Residue BONUS"},
+    14: {id: 14, label: "Worm QTY"},
+    15: {id: 15, label: "Larva QTY"},
+    16: {id: 16, label: "Larva EFF"},
     17: {id: 17, label: "ATTACK HP"},
-    18: {id: 18, label: "PET DMG"},
-    19: {id: 19, label: "PET LEVEL EXP"},
-    20: {id: 20, label: "PET RANK EXP"},
-    21: {id: 21, label: "CARD POWER B"},
-    22: {id: 22, label: "CARD EXP B"},
+    18: {id: 18, label: "Pet DMG"},
+    19: {id: 19, label: "Pet LEVEL EXP"},
+    20: {id: 20, label: "Pet RANK EXP"},
+    21: {id: 21, label: "Card POWER B"},
+    22: {id: 22, label: "Card EXP B"},
+    26: {id: 26, label: "Reinc Point Bonus"},
     1001: {id: 1001, label: "POTATO GAIN"},
     1002: {id: 1002, label: "CLASS EXP GAIN"},
     1003: {id: 1003, label: "SKULL GAIN"},
@@ -348,3 +349,45 @@ export const BonusMap = {
     5013: {id: 5013, label: "Breeding and Milk Timer"},
     5014: {id: 5014, label: "Faster Charge Tick"},
 };
+
+const standardBonusesWeightListCount = Array.from({length: 22}, (x, i) => i);
+export const standardBonusesWeightList = standardBonusesWeightListCount.map((idx, i) => BonusMap[i+1]);
+export const standardBonusesWeightById = standardBonusesWeightListCount.reduce((accum, item, i) => {
+    accum[i] = item;
+    return accum;
+}, {});
+export const DefaultWeightMappings = {
+    1: {id: 1, weight: .0015},
+    2: {id: 2, weight: .003},
+    3: {id: 3, weight: .003},
+    4: {id: 4, weight: .0001},
+    5: {id: 5, weight: 100},
+    6: {id: 6, weight: 50},
+    7: {id: 7, weight: .001},
+    8: {id: 8, weight: .029},
+    9: {id: 9, weight: 0.001},
+    10: {id: 10, weight: .0001},
+    11: {id: 11, weight: .0001},
+    12: {id: 12, weight: .0001},
+    13: {id: 13, weight: 3.051},
+    14: {id: 14, weight: .0029},
+    15: {id: 15, weight: .001},
+    16: {id: 16, weight: .001},
+    17: {id: 17, weight: .005},
+    18: {id: 18, weight: 200},
+    19: {id: 19, weight: 10},
+    20: {id: 20, weight: 10},
+    21: {id: 21, weight: 201},
+    22: {id: 22, weight: 10},
+    26: {id: 26, weight: 50},
+}
+const StandardBonusesWeightMap = standardBonusesWeightList.reduce((accum, item, i) => {
+    const newItem = {
+        ...item, // should be BonusMap {id, label}
+        weight: DefaultWeightMappings[item.id].weight
+    };
+
+    accum[item.id] = newItem;
+    return {...accum};
+}, {});
+export const DefaultWeightMap = StandardBonusesWeightMap;

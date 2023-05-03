@@ -3,14 +3,17 @@ import './App.css';
 import FileUpload from './FileUpload';
 import JSONDisplay from './JSONDisplay';
 import RepoLink from './RepoLink';
-import CardComponent from './cards/card';
-import { petNameArray } from './itemMapping';
+import CardComponent, {ExpeditionCardComponent} from './cards/card';
+import {DefaultWeightMap, petNameArray, standardBonusesWeightList} from './itemMapping';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { BottomNavigation, BottomNavigationAction } from '@mui/material';
 import BadgeIcon from '@mui/icons-material/Badge';
 import InfoIcon from '@mui/icons-material/Info';
+import ScaleIcon from '@mui/icons-material/Scale';
 import { Container, Box } from '@mui/material';
+import Weights from "./weights/weights";
+import WeightedPetList from "./weightedPetList/WeightedPetList";
 
 const theme = createTheme({
     palette: {
@@ -47,6 +50,10 @@ export const calculateGroupScore = (group, defaultRank) => {
     let timeCount = 0;
     let synergyBonus = 0;
     let baseGroupScore = 0;
+    let cardPowerCount = 0;
+    let expRewardCount = 0;
+    let rpRewardCount = 0;
+    let cardXpCount = 0;
     const typeCounts = {};
 
     group.forEach((pet) => {
@@ -54,8 +61,20 @@ export const calculateGroupScore = (group, defaultRank) => {
         if (pet.BonusList.some((bonus) => bonus.ID === 1013)) {
             dmgCount++;
         }
+        if (pet.BonusList.some((bonus) => bonus.ID === 1010)) {
+            cardPowerCount++;
+        }
+        if (pet.BonusList.some((bonus) => bonus.ID === 1011)) {
+            expRewardCount++;
+        }
+        if (pet.BonusList.some((bonus) => bonus.ID === 1014)) {
+            cardXpCount++;
+        }
         if (pet.BonusList.some((bonus) => bonus.ID === 1012)) {
             timeCount++;
+        }
+        if (pet.BonusList.some((bonus) => bonus.ID === 1015)) {
+            rpRewardCount++;
         }
 
         // Count pet types
@@ -75,7 +94,7 @@ export const calculateGroupScore = (group, defaultRank) => {
     groupScore *= (1 + timeCount * EXP_TIME_MOD);
     groupScore *= synergyBonus;
 
-    return {groupScore, baseGroupScore, dmgCount, timeCount, synergyBonus};
+    return {groupScore, baseGroupScore, dmgCount, timeCount, synergyBonus, cardPowerCount, expRewardCount, cardXpCount, rpRewardCount};
 };
 
 function getCombinations(array, k) {
@@ -125,7 +144,7 @@ export const findBestGroups = (petsCollection, defaultRank) => {
             petsCollection = petsCollection.filter((pet) => !bestGroup.includes(pet));
         }
     }
-console.log('foundbest', bestGroups,' from', petsCollection)
+
     return bestGroups;
 };
 
@@ -141,6 +160,7 @@ function App() {
     const [includeLocked, setIncludeLocked] = useState(false);
     const [selectedItems, setSelectedItems] = useState(defaultPetSelection);
     const [tabSwitch, setTabSwitch] = useState(0);
+    const [weightMap, setWeightMap] = useState(DefaultWeightMap);
 
     const handleItemSelected = (items) => {
         setSelectedItems(items);
@@ -148,12 +168,22 @@ function App() {
         if (items) handleGroups(data, items);
     };
 
+    const setWeights = (newWeightMap) => {
+        setWeightMap({...newWeightMap});
+    }
+
     const selectComponent = () => {
         switch (tabSwitch) {
+            case 4:
+                return <Weights weightMap={weightMap} setWeightsProp={setWeights} />;
+            // case 4:
+            //     return <WeightedPetList data={data} weightMap={weightMap} />;
+            case 3:
+                return <ExpeditionCardComponent data={data} weightMap={weightMap} />;
             case 2:
-                return <CardComponent data={data} />;
+                return <CardComponent data={data} weightMap={weightMap} />;
             case 1:
-                return <JSONDisplay data={data} groups={groups} selectedItems={selectedItems} handleItemSelected={handleItemSelected} />;
+                return <JSONDisplay weightMap={weightMap} data={data} groups={groups} selectedItems={selectedItems} handleItemSelected={handleItemSelected} />;
             case 0:
                 return <FileUpload onData={handleData} />;
             default:
@@ -212,7 +242,10 @@ function App() {
                     >
                         <BottomNavigationAction label="Upload" icon={<InfoIcon />} />
                         {!!data && <BottomNavigationAction label="Expedition" icon={<InfoIcon />} />}
-                        {!!data && <BottomNavigationAction label="Cards" icon={<BadgeIcon />} />}
+                        {!!data && <BottomNavigationAction label="Charges" icon={<BadgeIcon />} />}
+                        {!!data && <BottomNavigationAction label="Exp. Rewards" icon={<BadgeIcon />} />}
+                        {/*{!!data && <BottomNavigationAction label="Weighted Pets" icon={<ScaleIcon />} />}*/}
+                        {<BottomNavigationAction label="Weights" icon={<ScaleIcon />} />}
                     </BottomNavigation>
                 </Box>
             </Container>

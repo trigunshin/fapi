@@ -1,16 +1,13 @@
-/**
- *
- */
+import './card.css';
 import React, { useState } from 'react';
 import Grid2 from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
 import { makeStyles } from '@material-ui/core/styles';
+import {calculateGroupScore} from "../App";
 const Decimal = require('decimal.js');
-// import './card.css';
+
 
 const useStyles = makeStyles({
     card: {
@@ -125,9 +122,158 @@ const CARD_DISPLAY_IDS = [
     17,1,2,3,9,
     7,4,14,15,16,
     8,10,11,12,13,
-    5,6,19,18,20
-]
-export default function CardComponent({ data }) {
+    6,5,19,18,20
+];
+
+const CardCard = ({data, card, weightMap, i, classes, applyWeights}) => {
+    const {
+        CurrentExp,
+        ExpNeeded,
+        Found,
+        ID,
+        Level,
+        PowerPerma,
+        PowerTemp
+    } = card;
+    const { ChargeTransfertPowerPerma, ChargeTransfertPowerTemp } = data;
+
+    const permValue = permPowerBonusFormula[ID](PowerPerma);
+    const tempValue = tempPowerBonusFormula[ID](PowerTemp);
+    const lvlValue = new Decimal(0.02).times(new Decimal(Level)).plus(1);
+    const tempTimesPerm = (permValue.times(tempValue)).minus(1);
+    const total = tempTimesPerm.times(lvlValue);
+
+    const afterCharge = new Decimal((
+        tempPowerBonusFormula[ID](PowerTemp * (1.0 - ChargeTransfertPowerTemp))
+        * permPowerBonusFormula[ID](PowerPerma + PowerTemp * ChargeTransfertPowerPerma) - 1.0
+    ) * (1.0 + Level * 0.02));
+    const isPositiveChargeRatio = afterCharge.gt(total);
+
+    // const displayPerm = ((permValue.minus(new Decimal(1.))).times(new Decimal(100.))).toFixed(4);
+    // const displayTemp = ((tempValue.minus(new Decimal(1.))).times(new Decimal(100.))).toFixed(2);
+    // const displayLvlMod = ((lvlValue.minus(new Decimal(1.))).times(new Decimal(100.))).toFixed(2);
+    let displayTotalsRatio = total.isZero() ? Number(0) : afterCharge.div(total).sub(1);
+    // console.log('dtr', ID, displayTotalsRatio.toFixed(5));
+    displayTotalsRatio = applyWeights ? Number(displayTotalsRatio) * Number(weightMap[ID]?.weight) : Number(displayTotalsRatio);
+    // console.log('\tdtr', ID, displayTotalsRatio, Number(weightMap[ID]?.weight));
+
+    // TODO tooltip the scalars
+    return (
+        <Grid2 xs={1} key={i}>
+            <Box sx={{ minWidth: 20 }}>
+                <Card variant="outlined" className={classes.card}>
+                    <img src={`/fapi/cards/card${ID}.png`} />
+                    {/*<Typography variant="body1" gutterBottom>{total.toExponential(4)}</Typography>*/}
+                    {/*<Typography variant="body1" gutterBottom>->{afterCharge.toExponential(4)}</Typography>*/}
+                    <Typography sx={{color: isPositiveChargeRatio ? 'green' : 'red'}} variant="body1" gutterBottom>
+                        {isPositiveChargeRatio ? '+' : ''}&nbsp;{(displayTotalsRatio).toFixed(2)}
+                    </Typography>
+                </Card>
+            </Box>
+        </Grid2>
+    );
+}
+
+export function ExpeditionCardComponent({ data, weightMap, applyWeights }) {
+    // data.ExpeditionsCollection: {ID: 0, Room: 1, BaseHP: 0, CardFound:[...], ...}
+    // data.PetsSpecial (?combos)
+    // data.ExpeditionTeam
+    if (!data.ExpeditionTeam) return <div></div>;
+
+    const activeTeams = data.ExpeditionTeam
+        .filter(team => team.InExpedition && team.WhichExpedition)
+        .map((team) => {
+            const teamPetIds = [...team.ExpeditionTeamID]
+                .filter(id => id)
+                .map(id => data.PetsCollection[id]);
+            const score = calculateGroupScore(teamPetIds);
+            return {
+                ...team, ...score
+            }
+        })
+
+    return (
+        <Grid2 container >
+            <Grid2 xs={12}><Typography variant={"h2"}>Current Power/XP Card Gains</Typography></Grid2>
+            {activeTeams.map((team, i) => {
+                const {
+                   TeamName, CardExpGain, CardPowerGain, synergyBonus, cardPowerCount, expRewardCount, cardXpCount, rpRewardCount
+                } = team;
+                const tmpPower = CardPowerGain * (1.0 + cardPowerCount * 0.025) * (1.0 + expRewardCount * 0.05) * synergyBonus;
+                const totalXpGain = CardExpGain * (1.0 + cardXpCount * 0.025);
+
+                const rpHighest = .0005 * data.ReincarnationPointHighest;
+                const timeFactor = (Math.min(team.TimePassed, team.ExpeditionLenght ) + 1) / 3600;
+                const rpGain = rpHighest * timeFactor * synergyBonus * (1 + rpRewardCount * .025);
+
+                return (
+                    <Grid2 xs={6} key={i} className={"expCardContainer"}>
+                        <div className="tooltip">
+                            <div className="tooltip-content">
+                                <Grid2 container spacing={0}>
+                                    <Grid2 xs={12}>
+                                        <h3>
+                                            {TeamName}
+                                        </h3>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+                                        <Typography variant={"body"}>PWR+=&nbsp;{Number(tmpPower).toExponential(3)}</Typography>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+                                        <Typography variant={"body"}>XP&nbsp;+=&nbsp;{Number(totalXpGain).toExponential(3)}</Typography>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+                                        <Typography variant={"body"}>Base={Number(CardPowerGain).toExponential(3)}</Typography>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+                                        <Typography variant={"body"}>Base={Number(CardExpGain).toExponential(3)}</Typography>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+                                        <Typography variant={"body"}>Exp. Power*=&nbsp;{Number((1.0 + cardPowerCount * 0.025)).toExponential(3)}</Typography>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+                                        <Typography variant={"body"}>Exp. Exper*=&nbsp;{Number((1.0 + cardXpCount * 0.025)).toExponential(3)}</Typography>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+                                        <Typography variant={"body"}>Exp. Reward*=&nbsp;{Number((1.0 + expRewardCount * 0.05)).toExponential(3)}</Typography>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+                                        <Typography variant={"body"}>Exp. Synergy*=&nbsp;{Number(synergyBonus).toExponential(3)}</Typography>
+                                    </Grid2>
+                                    <Grid2 xs={6}>
+
+                                    </Grid2>
+                                </Grid2>
+                            </div>
+                        </div>
+                        <Grid2 container spacing={5}>
+                            <Grid2 xs={12}>
+                                <div><Typography variant={"body"}>
+                                    {TeamName}
+                                </Typography>
+                                </div>
+                            </Grid2>
+                            <Grid2 xs={12}>
+                                <img src={`/fapi/cards/CardPower.png`} className={"statIcon"} />:&nbsp;{tmpPower.toExponential(2)}
+                            </Grid2>
+                            <Grid2 xs={12}>
+                                <img src={`/fapi/cards/CardExp.png`} className={"statIcon"} />:&nbsp;{totalXpGain.toExponential(2)}
+                            </Grid2>
+                            <Grid2 xs={12}>
+                                <img src={`/fapi/cards/rp.png`} className={"statIcon"} />&nbsp;{rpGain.toExponential(2)}
+                            </Grid2>
+                        </Grid2>
+                    </Grid2>
+                );
+            })}
+        </Grid2>
+    );
+}
+
+export default function CardComponent({ data, weightMap, applyWeights }) {
     const classes = useStyles();
     if (!!data === false) return <div></div>;
     const {
@@ -141,64 +287,27 @@ export default function CardComponent({ data }) {
         accum[card.ID] = card;
         return accum;
     }, {});
-    const cardInfo = CARD_DISPLAY_IDS.map(id => cardsById[id] || false).filter(i => !!i).map((card, i) => {
-        const {
-            CurrentExp,
-            ExpNeeded,
-            Found,
-            ID,
-            Level,
-            PowerPerma,
-            PowerTemp
-        } = card;
-
-        const permValue = permPowerBonusFormula[ID](PowerPerma);
-        const tempValue = tempPowerBonusFormula[ID](PowerTemp);
-        const lvlValue = new Decimal(0.02).times(new Decimal(Level)).plus(1);
-        const tempTimesPerm = (permValue.times(tempValue)).minus(1);
-        const total = tempTimesPerm.times(lvlValue);
-
-        const afterCharge = new Decimal((
-            tempPowerBonusFormula[ID](PowerTemp * (1.0 - ChargeTransfertPowerTemp))
-            * permPowerBonusFormula[ID](PowerPerma + PowerTemp * ChargeTransfertPowerPerma) - 1.0
-        ) * (1.0 + Level * 0.02));
-        const isPositiveChargeRatio = afterCharge.gt(total);
-
-        // const displayPerm = ((permValue.minus(new Decimal(1.))).times(new Decimal(100.))).toFixed(4);
-        // const displayTemp = ((tempValue.minus(new Decimal(1.))).times(new Decimal(100.))).toFixed(2);
-        // const displayLvlMod = ((lvlValue.minus(new Decimal(1.))).times(new Decimal(100.))).toFixed(2);
-
-        // TODO tooltip the scalars
-        return (
-            <Grid2 xs={1} key={i}>
-                <Box sx={{ minWidth: 20 }}>
-                    <Card variant="outlined" className={classes.card}>
-                        <img src={`/fapi/cards/card${ID}.png`} />
-                        {/*<Typography variant="body1" gutterBottom>{total.toExponential(4)}</Typography>*/}
-                        {/*<Typography variant="body1" gutterBottom>->{afterCharge.toExponential(4)}</Typography>*/}
-                        <Typography sx={{color: isPositiveChargeRatio ? 'green' : 'red'}} variant="body1" gutterBottom>
-                            {isPositiveChargeRatio ? '+' : ''}&nbsp;{total.isZero() ? '0/0' : afterCharge.div(total).sub(1).times(100).toFixed(2)}%
-                        </Typography>
-                    </Card>
-                </Box>
-            </Grid2>
-        );
-    })
-
+    const weightedCardInfo = CARD_DISPLAY_IDS.map(id => cardsById[id] || false).filter(i => !!i)
+        .map((card, i) => {
+            return <CardCard data={data} i={i} card={card} weightMap={weightMap} classes={classes} applyWeights={true} key={i}></CardCard>;
+        });
     return (
         <Grid2 container spacing={.5}>
-            <Grid2 xs={12}>
+            <Grid2 xs={2}>
                 <Typography variant={"h4"}>{data?.CurrentCardCharge}&nbsp;<img src={`/fapi/cards/charge.png`} /></Typography>
             </Grid2>
-            {cardInfo.map(cardElement => cardElement)
+            <Grid2 xs={10}>
+                <Typography variant={"body"}>(uses Weights)</Typography>
+            </Grid2>
+            {weightedCardInfo.map(cardElement => cardElement)
                 .reduce((accum, cardElement, i) => {
                     accum.push(cardElement);
                     // pad grid's 6-wide column with blanks
                     if ((i + 1) % 5 === 0) accum.push(
                         (<Grid2 xs={7} key={`${i}-buffer`}>
-                            <div>&nbsp;</div>
-                        </Grid2>
-                    ));
+                                <div>&nbsp;</div>
+                            </Grid2>
+                        ));
                     return accum;
                 }, [])}
         </Grid2>
