@@ -257,7 +257,7 @@ export function ExpeditionCardComponent({ data, weightMap, applyWeights }) {
                                 </div>
                             </Grid2>
                             <Grid2 xs={12}>
-                                <img src={`/fapi/cards/CardPower.png`} className={"statIcon"} />:&nbsp;{tmpPower.toExponential(2)}
+                                <img src={`/fapi/cards/cardPower.png`} className={"statIcon"} />:&nbsp;{tmpPower.toExponential(2)}
                             </Grid2>
                             <Grid2 xs={12}>
                                 <img src={`/fapi/cards/CardExp.png`} className={"statIcon"} />:&nbsp;{totalXpGain.toExponential(2)}
