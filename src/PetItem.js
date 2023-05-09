@@ -8,12 +8,12 @@ const filterBonuses = (bonuses, filterFn) => {
         .filter(filterFn);
 };
 
-const PetItem = ({ petData, isSelected, onClick, data }) => {
+const PetItem = ({ petData, isSelected, onClick, data, weightMap, petScoreFn }) => {
     if (!!data === false) return <div></div>;
     const { petId, img, name } = petData;
 
     // Find the pet from the data.PetsCollection
-    const pet = data.PetsCollection.find(p => p.ID === parseInt(petId));
+    const pet = data.PetsCollection.find(p => p.ID === petId);
 
     if (!pet) return null; // In case the pet is not found in the collection
 
@@ -22,6 +22,17 @@ const PetItem = ({ petData, isSelected, onClick, data }) => {
     const totalScore = Number(
         Number(data?.PetDamageBonuses) * pet.BaseDungeonDamage * (1.0 + rank * 0.05) * 5
     ).toExponential(2);
+
+    // const weightedBonuses = filterBonuses(pet.BonusList, (bonus) => {
+    //     return bonus.ID < 1000;
+    // }).reduce((accum, activePetBonus) => {
+    //     const {ID, } = activePetBonus;
+    //     const result = weightMap[ID]?.weight;
+    //     if (result) accum += result;
+    //     return accum;
+    // }, 0);
+
+    const weightedActiveScore = petScoreFn ? petScoreFn(pet) : 0;
 
     const section1Bonuses = (
         <ul>

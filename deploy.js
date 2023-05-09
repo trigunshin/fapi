@@ -6,7 +6,7 @@ const buildDir = 'build';
 
 // Move to the root of the repository
 process.chdir(path.resolve(__dirname));
-// execSync('git checkout ghpages2');
+execSync('git checkout ghpages2');
 
 // Copy build files to the root directory
 fs.copySync(buildDir, 'docs/');

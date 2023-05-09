@@ -38,7 +38,7 @@ function ScoreSection({data, group, totalScore}) {
     );
 }
 
-const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected }) => {
+const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected, weightMap }) => {
     if (!!data === false || !!data.PetsCollection === false) {
         return <div>Loading...</div>; // You can replace this with null or another element if you prefer
     }
@@ -70,33 +70,32 @@ const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected }) => {
                         </div>
                     )
                     accum.push(
-                        // <div className="grid-row" key={index}>
-                            <Grid2 container spacing={1} key={index}>
-                                {!!group && group.map((petData, idx) => {
-                                    const { ID } = petData;
-                                    const staticPetData = petNameArray.find(staticPetDatum => staticPetDatum.petId === ID)
+                        <Grid2 container spacing={1} key={index}>
+                            {!!group && group.map((petData, idx) => {
+                                const { ID } = petData;
+                                const staticPetData = petNameArray.find(staticPetDatum => staticPetDatum.petId === ID)
 
-                                    return (
-                                        <Grid2 xs={3} key={idx}>
-                                            <PetItem
-                                                key={ID}
-                                                petData={staticPetData}
-                                                data={data}
-                                                isSelected={true}
-                                                onClick={() => {}}
-                                            />
-                                        </Grid2>
-                                    );
-                                })}
-                            </Grid2>
-                        // </div>
+                                return (
+                                    <Grid2 xs={3} key={idx}>
+                                        <PetItem
+                                            key={ID}
+                                            petData={staticPetData}
+                                            data={data}
+                                            isSelected={true}
+                                            onClick={() => {}}
+                                            weightMap={weightMap}
+                                        />
+                                    </Grid2>
+                                );
+                            })}
+                        </Grid2>
                     );
                     return accum;
                 }, [])}
             </div>
             <div className="grid-right">
                 <Typography variant={"h5"}>Highlighted: >0 rank pets (clickable)</Typography>
-                <ItemSelection data={data} selectedItems={selectedItems} onItemSelected={handleItemSelected} />
+                <ItemSelection weightMap={weightMap} data={data} selectedItems={selectedItems} onItemSelected={handleItemSelected} />
             </div>
         </div>
     );

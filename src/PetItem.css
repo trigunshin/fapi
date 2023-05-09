@@ -4,11 +4,13 @@
 /*}*/
 .item-image-container {
     position: relative;
+    max-width: 75px;
+    max-height: 75px;
     /*width: 100%;*/
 }
 .item-image {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 75px;
+    max-height: 75px;
 }
 .unselected {
     opacity: 0.4;
@@ -32,6 +34,8 @@
     min-width: 200px;
     max-width: 400px;
     white-space: nowrap;
+    top: 100px;
+    left: 10px;
 }
 .item-tile:hover .tooltip {
     visibility: visible;
