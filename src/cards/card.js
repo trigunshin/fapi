@@ -197,14 +197,16 @@ export function ExpeditionCardComponent({ data, weightMap, applyWeights }) {
             <Grid2 xs={12}><Typography variant={"h2"}>Current Power/XP Card Gains</Typography></Grid2>
             {activeTeams.map((team, i) => {
                 const {
-                   TeamName, CardExpGain, CardPowerGain, synergyBonus, cardPowerCount, expRewardCount, cardXpCount, rpRewardCount
+                   TeamName, CardExpGain, CardPowerGain, synergyBonus, cardPowerCount, expRewardCount, cardXpCount, rpRewardCount, tokenRewardCount
                 } = team;
                 const tmpPower = CardPowerGain * (1.0 + cardPowerCount * 0.025) * (1.0 + expRewardCount * 0.05) * synergyBonus;
                 const totalXpGain = CardExpGain * (1.0 + cardXpCount * 0.025);
+                const expeditionRewardBonus = data.ExpeditionResourceBonuses
 
                 const rpHighest = .0005 * data.ReincarnationPointHighest;
                 const timeFactor = (Math.min(team.TimePassed, team.ExpeditionLenght ) + 1) / 3600;
-                const rpGain = rpHighest * timeFactor * synergyBonus * (1 + rpRewardCount * .025);
+                const rpGain = expeditionRewardBonus * rpHighest * timeFactor * synergyBonus * (1 + rpRewardCount * .025);
+                const tokenGain = expeditionRewardBonus * timeFactor * synergyBonus * (1 + tokenRewardCount * .005)
 
                 return (
                     <Grid2 xs={6} key={i} className={"expCardContainer"}>
@@ -264,6 +266,9 @@ export function ExpeditionCardComponent({ data, weightMap, applyWeights }) {
                             </Grid2>
                             <Grid2 xs={12}>
                                 <img src={`/fapi/cards/rp.png`} className={"statIcon"} />&nbsp;{rpGain.toExponential(2)}
+                            </Grid2>
+                            <Grid2 xs={12}>
+                                <img src={`/fapi/cards/exp_token.png`} className={"statIcon"} />&nbsp;{tokenGain.toFixed(0)}
                             </Grid2>
                         </Grid2>
                     </Grid2>

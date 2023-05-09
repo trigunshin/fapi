@@ -294,6 +294,11 @@ export const petNameArray = Object.entries(PetNames).map(([key, value]) => {
     };
 })
 
+export const petNamesById = petNameArray.reduce((accum, petNameData) => {
+    accum[petNameData.petId] = petNameData;
+    return accum;
+}, {});
+
 export const BonusMap = {
     1: {id: 1, label: "Potato"},
     2: {id: 2, label: "Class Exp"},

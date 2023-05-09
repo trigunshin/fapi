@@ -14,6 +14,7 @@ import ScaleIcon from '@mui/icons-material/Scale';
 import { Container, Box } from '@mui/material';
 import Weights from "./weights/weights";
 import WeightedPetList from "./weightedPetList/WeightedPetList";
+import PetComboList from "./comboList/comboList";
 
 const theme = createTheme({
     palette: {
@@ -54,6 +55,7 @@ export const calculateGroupScore = (group, defaultRank) => {
     let expRewardCount = 0;
     let rpRewardCount = 0;
     let cardXpCount = 0;
+    let tokenRewardCount = 0;
     const typeCounts = {};
 
     group.forEach((pet) => {
@@ -76,6 +78,9 @@ export const calculateGroupScore = (group, defaultRank) => {
         if (pet.BonusList.some((bonus) => bonus.ID === 1015)) {
             rpRewardCount++;
         }
+        if (pet.BonusList.some((bonus) => bonus.ID === 1016)) {
+            tokenRewardCount++;
+        }
 
         // Count pet types
         if (typeCounts[pet.Type]) {
@@ -94,7 +99,7 @@ export const calculateGroupScore = (group, defaultRank) => {
     groupScore *= (1 + timeCount * EXP_TIME_MOD);
     groupScore *= synergyBonus;
 
-    return {groupScore, baseGroupScore, dmgCount, timeCount, synergyBonus, cardPowerCount, expRewardCount, cardXpCount, rpRewardCount};
+    return {groupScore, baseGroupScore, dmgCount, timeCount, synergyBonus, cardPowerCount, expRewardCount, cardXpCount, rpRewardCount, tokenRewardCount};
 };
 
 function getCombinations(array, k) {
@@ -176,10 +181,10 @@ function App() {
         switch (tabSwitch) {
             case 4:
                 return <Weights weightMap={weightMap} setWeightsProp={setWeights} />;
-            // case 4:
-            //     return <WeightedPetList data={data} weightMap={weightMap} />;
             case 3:
-                return <ExpeditionCardComponent data={data} weightMap={weightMap} />;
+                return <PetComboList data={data} weightMap={weightMap} />;
+            // case 3:
+            //     return <ExpeditionCardComponent data={data} weightMap={weightMap} />;
             case 2:
                 return <CardComponent data={data} weightMap={weightMap} />;
             case 1:
@@ -231,9 +236,10 @@ function App() {
         <ThemeProvider theme={theme}>
             <RepoLink />
             <Container>
-                <Box sx={{ flexGrow: 1 }}>
+                <Box sx={{ flexGrow: 1 }} className={"main-content"}>
                     {selectComponent()}
                 </Box>
+                <Box sx={{ height: '64px' }} /> {/* Add extra space at the bottom */}
                 <Box sx={{ width: '100%', position: 'fixed', bottom: 0 }}>
                     <BottomNavigation
                         showLabels
@@ -243,7 +249,8 @@ function App() {
                         <BottomNavigationAction label="Upload" icon={<InfoIcon />} />
                         {!!data && <BottomNavigationAction label="Expedition" icon={<InfoIcon />} />}
                         {!!data && <BottomNavigationAction label="Charges" icon={<BadgeIcon />} />}
-                        {!!data && <BottomNavigationAction label="Exp. Rewards" icon={<BadgeIcon />} />}
+                        {/*{!!data && <BottomNavigationAction label="Exp. Rewards" icon={<BadgeIcon />} />}*/}
+                        {!!data && <BottomNavigationAction label="Pet Combo List" icon={<BadgeIcon />} />}
                         {/*{!!data && <BottomNavigationAction label="Weighted Pets" icon={<ScaleIcon />} />}*/}
                         {<BottomNavigationAction label="Weights" icon={<ScaleIcon />} />}
                     </BottomNavigation>
