@@ -161,7 +161,7 @@ function setGroupCache(newCache) {
 function App() {
     const [data, setData] = useState(null);
     const [groups, setGroups] = useState([]);
-    const [defaultRank, setDefaultRank] = useState(1);
+    const [defaultRank, setDefaultRank] = useState(0);
     const [includeLocked, setIncludeLocked] = useState(false);
     const [selectedItems, setSelectedItems] = useState(defaultPetSelection);
     const [tabSwitch, setTabSwitch] = useState(0);
