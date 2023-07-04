@@ -38,7 +38,7 @@
       "react-app/jest"
     ]
   },
-  "homepage": "https://myusername.github.io/fapi_teams_fork",
+  "homepage":"https://myusername.github.io/fapi_teams_fork",
   "browserslist": {
     "production": [
       ">0.2%",
