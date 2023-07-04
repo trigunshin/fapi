@@ -2,7 +2,6 @@
   "name": "fapi",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://trigunshin.github.io/fapi/",
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
@@ -39,6 +38,7 @@
       "react-app/jest"
     ]
   },
+  "homepage":"https://myusername.github.io/fapi_teams_fork",
   "browserslist": {
     "production": [
       ">0.2%",
