@@ -2,43 +2,43 @@ import React from 'react';
 import Grid2 from '@mui/material/Unstable_Grid2';
 
 import './JSONDisplay.css'; // Add this line to import the CSS file
-import {BonusMap, petNameArray} from './itemMapping';
+import { BonusMap, petNameArray } from './itemMapping';
 import PetItem from './PetItem';
 import ItemSelection from "./ItemSelection";
 import MouseOverPopover from "./tooltip";
 import Typography from "@mui/material/Typography";
-import {calculateGroupScore, calculatePetBaseDamage, EXP_DMG_MOD, EXP_TIME_MOD} from "./App";
+import { calculateGroupScore, calculatePetBaseDamage, EXP_DMG_MOD, EXP_TIME_MOD } from "./App";
 
 
-function ScoreSection({data, group, totalScore}) {
-    const {baseGroupScore, dmgCount, timeCount, synergyBonus} = calculateGroupScore(group);
+function ScoreSection({ data, group, totalScore,defaultRank }) {
+    const { baseGroupScore, dmgCount, timeCount, synergyBonus } = calculateGroupScore(group, defaultRank);
     return (
         <React.Fragment>
-        <ul>
-            <li>
-                {Number(totalScore).toExponential(2)}&nbsp;~=&nbsp; 5 *
-            </li>
-            <li>
-                Group Base: {Number(baseGroupScore).toExponential(2)}
-            </li>
-            <li>
-                Dmg Bonus: {Number(1+dmgCount * EXP_DMG_MOD).toFixed(2)}x
-            </li>
-            <li>
-                Time Bonus: {Number(1+timeCount * EXP_TIME_MOD).toFixed(2)}x
-            </li>
-            <li>
-                Synergy: {Number(synergyBonus).toFixed(2)}x
-            </li>
-            <li>
-                PetDmgMod: {Number(data?.PetDamageBonuses).toExponential(2)}
-            </li>
-        </ul>
+            <ul>
+                <li>
+                    {Number(totalScore).toExponential(2)}&nbsp;~=&nbsp; 5 *
+                </li>
+                <li>
+                    Group Base: {Number(baseGroupScore).toExponential(2)}
+                </li>
+                <li>
+                    Dmg Bonus: {Number(1 + dmgCount * EXP_DMG_MOD).toFixed(2)}x
+                </li>
+                <li>
+                    Time Bonus: {Number(1 + timeCount * EXP_TIME_MOD).toFixed(2)}x
+                </li>
+                <li>
+                    Synergy: {Number(synergyBonus).toFixed(2)}x
+                </li>
+                <li>
+                    PetDmgMod: {Number(data?.PetDamageBonuses).toExponential(2)}
+                </li>
+            </ul>
         </React.Fragment>
     );
 }
 
-const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected, weightMap }) => {
+const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected, weightMap, setDefaultRank, defaultRank }) => {
     if (!!data === false || !!data.PetsCollection === false) {
         return <div>Loading...</div>; // You can replace this with null or another element if you prefer
     }
@@ -46,7 +46,20 @@ const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected, weightMa
     return (
         <div className="grid-container">
             <div className="grid-left">
-                <Typography variant={"h5"} >Best Teams</Typography>
+                <div>
+                    <Typography variant={"h5"} >Best Teams</Typography>
+                    <div style={{ display: 'flex' }}>
+                        <div>Force Rank 1</div>
+                        <input type="checkbox" onChange={(e) => {
+                            setDefaultRank(e.target.checked ? 1 : 0)
+                        }} />
+
+                    </div>
+
+                    {/* <div>Force Rank 1</div> */}
+
+                </div>
+
                 {groups.reduce((accum, group, index) => {
                     const score = calculateGroupScore(group).groupScore;
                     const displayedDamage = group
@@ -58,7 +71,7 @@ const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected, weightMa
                         <div className="groups-tooltip">
                             <span className="groups-tooltip-content">
                                 <h3>Group Score ({totalScore})</h3>
-                                <ScoreSection data={data} group={group} totalScore={totalScore} />
+                                <ScoreSection data={data} group={group} totalScore={totalScore} defaultRank={defaultRank} />
                             </span>
                         </div>
                     );
@@ -82,7 +95,7 @@ const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected, weightMa
                                             petData={staticPetData}
                                             data={data}
                                             isSelected={true}
-                                            onClick={() => {}}
+                                            onClick={() => { }}
                                             weightMap={weightMap}
                                         />
                                     </Grid2>
@@ -94,7 +107,7 @@ const JSONDisplay = ({ data, groups, selectedItems, handleItemSelected, weightMa
                 }, [])}
             </div>
             <div className="grid-right">
-                <Typography variant={"h5"}>Highlighted: >0 rank pets (clickable)</Typography>
+                <Typography variant={"h5"}>Highlighted: {'>'}0 rank pets (clickable)</Typography>
                 <ItemSelection weightMap={weightMap} data={data} selectedItems={selectedItems} onItemSelected={handleItemSelected} />
             </div>
         </div>

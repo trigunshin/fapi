@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import FileUpload from './FileUpload';
 import JSONDisplay from './JSONDisplay';
 import RepoLink from './RepoLink';
-import CardComponent, {ExpeditionCardComponent} from './cards/card';
-import {DefaultWeightMap, petNameArray, standardBonusesWeightList} from './itemMapping';
+import CardComponent, { ExpeditionCardComponent } from './cards/card';
+import { DefaultWeightMap, petNameArray, standardBonusesWeightList } from './itemMapping';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { BottomNavigation, BottomNavigationAction } from '@mui/material';
@@ -99,7 +99,7 @@ export const calculateGroupScore = (group, defaultRank) => {
     groupScore *= (1 + timeCount * EXP_TIME_MOD);
     groupScore *= synergyBonus;
 
-    return {groupScore, baseGroupScore, dmgCount, timeCount, synergyBonus, cardPowerCount, expRewardCount, cardXpCount, rpRewardCount, tokenRewardCount};
+    return { groupScore, baseGroupScore, dmgCount, timeCount, synergyBonus, cardPowerCount, expRewardCount, cardXpCount, rpRewardCount, tokenRewardCount };
 };
 
 function getCombinations(array, k) {
@@ -128,7 +128,7 @@ export const findBestGroups = (petsCollection, defaultRank) => {
     const memoizedGroupScore = (group) => {
         const key = group.map((pet) => pet.ID).join(',');
         if (!memo[key] || memo[key]) {
-            memo[key] = calculateGroupScore(group)?.groupScore;
+            memo[key] = calculateGroupScore(group, defaultRank)?.groupScore;
         }
         return memo[key];
     };
@@ -161,11 +161,20 @@ function setGroupCache(newCache) {
 function App() {
     const [data, setData] = useState(null);
     const [groups, setGroups] = useState([]);
-    const [defaultRank, setDefaultRank] = useState(0);
+    const [defaultRank, setDefaultRank] = useState(1);
     const [includeLocked, setIncludeLocked] = useState(false);
     const [selectedItems, setSelectedItems] = useState(defaultPetSelection);
     const [tabSwitch, setTabSwitch] = useState(0);
     const [weightMap, setWeightMap] = useState(DefaultWeightMap);
+    const [refreshGroups, setRefreshGroups] = useState(false);
+
+    //Fires only when we need to refresh the best pet groups (like the rank being reset)
+    useEffect(() => {
+        if (refreshGroups) {
+            setRefreshGroups(false);
+            handleGroups(data, selectedItems, true);
+        }
+    }, [data, selectedItems, refreshGroups])
 
     const handleItemSelected = (items) => {
         setSelectedItems(items);
@@ -174,8 +183,9 @@ function App() {
     };
 
     const setWeights = (newWeightMap) => {
-        setWeightMap({...newWeightMap});
+        setWeightMap({ ...newWeightMap });
     }
+
 
     const selectComponent = () => {
         switch (tabSwitch) {
@@ -188,7 +198,20 @@ function App() {
             case 2:
                 return <CardComponent data={data} weightMap={weightMap} />;
             case 1:
-                return <JSONDisplay weightMap={weightMap} data={data} groups={groups} selectedItems={selectedItems} handleItemSelected={handleItemSelected} />;
+                return <JSONDisplay
+                    weightMap={weightMap}
+                    data={data} groups={groups}
+                    selectedItems={selectedItems}
+                    handleItemSelected={handleItemSelected}
+                    setDefaultRank={
+                        (val) => {
+                            //Setting default rank to the value (0 for old functionality, otherwise groups are calcualted with all pets at specified rank)
+                            setDefaultRank(val);
+                            setRefreshGroups(true);//Forcing all the groups to be recalculated
+                        }
+                    }
+                    defaultRank={defaultRank}
+                />;
             case 0:
                 return <FileUpload onData={handleData} />;
             default:
@@ -202,7 +225,7 @@ function App() {
         console.log(uploadedData)
         const positiveRankedPets = uploadedData.PetsCollection.filter(
             (pet) => {
-                const isValidRank = defaultRank ? true : !!pet.Rank;
+                const isValidRank = !!pet.Rank;//Instead of relying on defaultRank always = 0, select valid ranks if they exist (not 0)
                 const isValidLocked = includeLocked ? true : !!pet.Locked;
                 return isValidRank && isValidLocked;
             }
@@ -213,7 +236,8 @@ function App() {
         if (tabSwitch === 0) setTabSwitch(1);  // move upload to expedition when done
     };
 
-    const handleGroups = (data, selectedItems) => {
+    //Recalculate used to force the groups to be...recalculated
+    const handleGroups = (data, selectedItems, recalculate) => {
         const petData = data?.PetsCollection || [];
         const selectedItemsById = petData.reduce((accum, item) => {
             accum[parseInt(item.ID, 10)] = item;
@@ -223,11 +247,11 @@ function App() {
         const localPets = selectedItems.map(petId => selectedItemsById[petId])
         const keyString = selectedItems.sort().join(',');
         let groups = groupCache[keyString];
-        if (groups) {
+        if (groups && !recalculate) {
             setGroups(groups);
         } else {
             groups = findBestGroups(localPets, defaultRank);
-            setGroupCache({...groupCache, [keyString]: groups})
+            setGroupCache({ ...groupCache, [keyString]: groups })
             setGroups(groups);
         }
     }
